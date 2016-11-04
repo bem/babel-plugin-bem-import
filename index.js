@@ -15,7 +15,7 @@ module.exports = function({ types: t }) {
 
   return {
     visitor: {
-      Program(_, { opts: { naming, levels, techs }, file: { opts: { filename } } }) {
+      Program(_, { opts: { naming, levels, techs, cwd }, file: { opts: { filename } } }) {
         namingOptions = Object.assign({}, defaultNaming, naming);
         bemNaming = bn(namingOptions);
         bemLevels = levels;
@@ -26,18 +26,18 @@ module.exports = function({ types: t }) {
         context = bemNaming.parse(rootEntity);
 
         getEntityFiles = entity => {
-            const prefixes = bemLevels.map(level => path.resolve(
-                process.cwd(), // TODO: use proper relative resolving
-                path.join(
-                    level,
-                    entity.block,
-                    entity.elem? `${namingOptions.elemDirPrefix}${entity.elem}` : '',
-                    entity.modName? `${namingOptions.modDirPrefix}${entity.modName}` : '',
-                    bemNaming.stringify(entity))));
+          const prefixes = bemLevels.map(level => path.resolve(
+            process.env.BEM_CWD || process.cwd(), // TODO: use proper relative resolving
+            path.join(
+              level,
+              entity.block,
+              entity.elem? `${namingOptions.elemDirPrefix}${entity.elem}` : '',
+              entity.modName? `${namingOptions.modDirPrefix}${entity.modName}` : '',
+              bemNaming.stringify(entity))));
 
-            return bemTechs.reduce((res, tech) =>
-                res.concat(prefixes.map(prefix => `${prefix}.${tech}`)),
-                []);
+          return bemTechs.reduce((res, tech) =>
+            res.concat(prefixes.map(prefix => `${prefix}.${tech}`)),
+            []);
         };
       },
       ImportDeclaration(p) {
@@ -118,44 +118,44 @@ module.exports = function({ types: t }) {
 }
 
 function parseEntityImport(entityImport, ctx) {
-    const res = [],
-        main = {};
+  const res = [];
+  const main = {};
 
-    entityImport.split(' ').forEach((importToken, i) => {
-        const split = importToken.split(':'),
-            type = split[0],
-            tail = split[1];
+  entityImport.split(' ').forEach((importToken, i) => {
+    const split = importToken.split(':');
+    const type = split[0];
+    const tail = split[1];
 
-        if(!i) {
-            main.block = type === 'b'? tail : ctx.block;
-            type === 'e' && (main.elem = tail);
-        } else if(type === 'e') {
-            main.elem = tail;
+    if(!i) {
+      main.block = type === 'b'? tail : ctx.block;
+      type === 'e' && (main.elem = tail);
+    } else if(type === 'e') {
+      main.elem = tail;
+    }
+
+    switch(type) {
+      case 'b':
+      case 'e':
+        res.length || res.push(main);
+      break;
+
+      case 'm':
+        const splitMod = tail.split('=');
+        const modName = splitMod[0];
+        const modVals = splitMod[1];
+
+        if(modVals) {
+          modVals.split('|').forEach(modVal => {
+            res.push(Object.assign({}, main, { modName, modVal }));
+          });
+        } else {
+          res.push(Object.assign({}, main, { modName }));
         }
+      break;
+    }
+  });
 
-        switch(type) {
-            case 'b':
-            case 'e':
-                res.length || res.push(main);
-            break;
-
-            case 'm':
-                const splitMod = tail.split('='),
-                    modName = splitMod[0],
-                    modVals = splitMod[1];
-
-                if(modVals) {
-                    modVals.split('|').forEach(modVal => {
-                        res.push(Object.assign({}, main, { modName, modVal }));
-                    });
-                } else {
-                    res.push(Object.assign({}, main, { modName }));
-                }
-            break;
-        }
-    });
-
-    return res;
+  return res;
 }
 
 function isFileJsModule(file) { return path.extname(file) === '.js' };
