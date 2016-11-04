@@ -41,7 +41,7 @@ module.exports = function({ types: t }) {
       },
       ImportDeclaration(p) {
         if(p.node.source.value.match(/^(b|e|m)\:/)) {
-          const localEntityName = p.node.specifiers[0].local.name;
+          const localEntityName = p.node.specifiers[0] && p.node.specifiers[0].local.name;
 
           const importString = p.node.source.value;
 
@@ -77,40 +77,38 @@ module.exports = function({ types: t }) {
             true
           ) : requiresAst;
 
-          const replace = idx ?
-            t.conditionalExpression(
+          const replace = idx ? t.conditionalExpression(
+            t.memberExpression(
+              combinedAst,
+              t.identifier('default')
+            ),
+            t.callExpression(
               t.memberExpression(
-                combinedAst,
-                t.identifier('default')
-              ),
-              t.callExpression(
-                t.memberExpression(
-                  t.memberExpression(
-                    combinedAst,
-                    t.identifier('default')
-                  ),
-                  t.identifier('applyDecls')
-                ),
-                []
-              ),
-              t.callExpression(
                 t.memberExpression(
                   combinedAst,
-                  t.identifier('applyDecls')
+                  t.identifier('default')
                 ),
-                []
-              )
+                t.identifier('applyDecls')
+              ),
+              []
+            ),
+            t.callExpression(
+              t.memberExpression(
+                combinedAst,
+                t.identifier('applyDecls')
+              ),
+              []
             )
-          : combinedAst;
+          ) : combinedAst;
 
           p.replaceWith(
-            t.variableDeclaration(
+            localEntityName ? t.variableDeclaration(
               'const',
               [t.variableDeclarator(
                 t.identifier(localEntityName),
                 replace
               )]
-            )
+            ) : replace
           );
         }
       }
