@@ -27,4 +27,10 @@
 }
 ```
 
+## Options
+
+- __naming__: [bem-naming](https://en.bem.info/toolbox/sdk/bem-naming) overrides
+- __levels__<Array>: paths to components declarations
+- __techs__<Array>: list of techs extensions for require in runtime
+
 ### License MIT
