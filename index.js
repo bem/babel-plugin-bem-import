@@ -1,6 +1,7 @@
 const path = require('path');
 const fs = require('fs');
 const bn = require('bem-naming');
+const logSymbols = require('log-symbols');
 
 const defaultNaming = { elem : '-', elemDirPrefix: '', modDirPrefix: '_' };
 
@@ -63,7 +64,7 @@ module.exports = function({ types: t }) {
 
           const requires = currentEntityRequires.reduce((res, entity) => {
             if(!entity.requires.length) {
-              throw new Error(`No BEM entity: "${bemNaming.stringify(entity.entity)}"`);
+              console.log(`${logSymbols.warning}  Can't find declaration for BEM-entity '${bemNaming.stringify(entity.entity)}'. Maybe it has tech wich doesn't resolve in '${process.env.NODE_ENV}' env.`);
             }
 
             return res.concat(entity.requires);

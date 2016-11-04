@@ -22,5 +22,8 @@
   "bugs": {
     "url": "https://github.com/awinogradov/babel-plugin-bem-import/issues"
   },
-  "homepage": "https://github.com/awinogradov/babel-plugin-bem-import#readme"
+  "homepage": "https://github.com/awinogradov/babel-plugin-bem-import#readme",
+  "dependencies": {
+    "log-symbols": "^1.0.2"
+  }
 }
