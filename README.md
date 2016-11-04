@@ -1,5 +1,16 @@
 # BEM import
 
+BEM-entities auto resolver for custom import strings.
+
+``` js
+import Block from 'b:block';
+import Block from 'b:block m:modName';
+import Block from 'b:block m:modName=modVal1|modVal2';
+import BlockElem from 'b:block e:elem';
+import BlockElem from 'b:block e:elem m:modName';
+import BlockElem from 'b:block e:elem m:modName=modVal1|modVal2';
+```
+
 ## Install
 
 > npm i -D babel-plugin-bem-import
