@@ -1,0 +1,26 @@
+{
+  "name": "babel-plugin-bem-import",
+  "version": "0.0.1",
+  "description": "BEM import resolver",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/awinogradov/babel-plugin-bem-import.git"
+  },
+  "keywords": [
+    "babel",
+    "bem",
+    "import",
+    "declaration",
+    "babylon"
+  ],
+  "author": "Anton Winogradov <winogradovaa@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/awinogradov/babel-plugin-bem-import/issues"
+  },
+  "homepage": "https://github.com/awinogradov/babel-plugin-bem-import#readme"
+}
