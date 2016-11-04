@@ -1,6 +1,6 @@
 {
   "name": "babel-plugin-bem-import",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "BEM import resolver",
   "main": "index.js",
   "scripts": {
