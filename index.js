@@ -10,14 +10,19 @@ module.exports = function({ types: t }) {
   let bemLevels;
   let bemTechs;
   let getEntityFiles;
+  let context;
 
   return {
     visitor: {
-      Program(_, { opts: { naming, levels, techs } }) {
+      Program(_, { opts: { naming, levels, techs }, file: { opts: { filename } } }) {
         namingOptions = Object.assign({}, defaultNaming, naming);
         bemNaming = bn(namingOptions);
         bemLevels = levels;
         bemTechs = techs;
+
+        const rootEntity = path.basename(filename).split('.')[0];
+
+        context = bemNaming.parse(rootEntity);
 
         getEntityFiles = entity => {
             const prefixes = bemLevels.map(level => path.resolve(
@@ -34,13 +39,11 @@ module.exports = function({ types: t }) {
                 []);
         };
       },
-      ImportDeclaration(p, { file: { opts: { filename } } }) {
+      ImportDeclaration(p) {
         if(p.node.source.value.match(/^(b|e|m)\:/)) {
           const localEntityName = p.node.specifiers[0].local.name;
 
           const importString = p.node.source.value;
-          const rootEntity = path.basename(filename).split('.')[0];
-          const context = bemNaming.parse(rootEntity);
 
           let requireIdx = null;
 
@@ -65,9 +68,6 @@ module.exports = function({ types: t }) {
 
             return res.concat(entity.requires);
           }, []);
-
-          // TODO: add plugin param for CSS require or not
-          // console.log(currentEntityRequires);
 
           const idx = requireIdx !== null;
           const requiresAst = t.arrayExpression(requires);
@@ -144,8 +144,6 @@ function parseEntityImport(entityImport, ctx) {
                 const splitMod = tail.split('='),
                     modName = splitMod[0],
                     modVals = splitMod[1];
-
-                main.elem || (main.elem = ctx.elem);
 
                 if(modVals) {
                     modVals.split('|').forEach(modVal => {
