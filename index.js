@@ -27,7 +27,7 @@ module.exports = function({ types: t }) {
 
         getEntityFiles = entity => {
           const prefixes = bemLevels.map(level => path.resolve(
-            process.env.BEM_CWD || process.cwd(), // TODO: use proper relative resolving
+            process.env.BEM_CWD || process.cwd(),
             path.join(
               level,
               entity.block,
@@ -55,7 +55,7 @@ module.exports = function({ types: t }) {
               !entity.modName && isFileJsModule(entityFile) && (requireIdx = i);
               return t.callExpression(
                 t.identifier('require'),
-                [t.stringLiteral(entityFile)]
+                [t.stringLiteral(path.relative(path.dirname(filename), entityFile))]
               );
             });
 
