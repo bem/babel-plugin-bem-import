@@ -53,9 +53,14 @@ module.exports = function({ types: t }) {
 
             const requires = possibleEntityFiles.filter(fs.existsSync).map((entityFile, i) => {
               !entity.modName && isFileJsModule(entityFile) && (requireIdx = i);
+
+              let pa = path.relative(path.dirname(filename), entityFile);
+              if(pa.charAt(0) !== '.') {
+                  pa = `./${pa}`;
+              }
               return t.callExpression(
                 t.identifier('require'),
-                [t.stringLiteral(path.relative(path.dirname(filename), entityFile))]
+                [t.stringLiteral(pa)]
               );
             });
 
