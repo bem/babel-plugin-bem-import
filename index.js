@@ -40,7 +40,7 @@ module.exports = function({ types: t }) {
             []);
         };
       },
-      ImportDeclaration(p) {
+      ImportDeclaration(p, { file: { opts: { filename } } }) {
         if(p.node.source.value.match(/^(b|e|m)\:/)) {
           const localEntityName = p.node.specifiers[0] && p.node.specifiers[0].local.name;
 
