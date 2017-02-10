@@ -1,166 +1,143 @@
-const path = require('path');
-const fs = require('fs');
-const bn = require('bem-naming');
-const logSymbols = require('log-symbols');
-
-const defaultNaming = { elem : '-', elemDirPrefix: '', modDirPrefix: '_' };
+const fs = require('fs'),
+    path = require('path'),
+    bn = require('@bem/naming'),
+    BemCell = require('@bem/cell'),
+    BemEntityName = require('@bem/entity-name'),
+    bemFs = require('@bem/fs-scheme')(),
+    bemImport = require('@bem/import-notation'),
+    template = require('babel-template'),
+    logSymbols = require('log-symbols');
 
 module.exports = function({ types: t }) {
-  let namingOptions;
-  let bemNaming;
-  let bemLevels;
-  let bemTechs;
-  let getEntityFiles;
-  let context;
 
-  return {
+return {
     visitor: {
-      Program(_, { opts: { naming, levels, techs, cwd }, file: { opts: { filename } } }) {
-        namingOptions = Object.assign({}, defaultNaming, naming);
-        bemNaming = bn(namingOptions);
-        bemLevels = levels;
-        bemTechs = techs;
+        CallExpression(p, { opts: { naming, levels, techs=['js'] }, opts, file: { opts: { filename } } }) {
+            const techMap = techs.reduce((acc, tech) => {
+                acc[tech] || (acc[tech] = [tech]);
+                return acc;
+            }, opts.techMap || {}),
+            extToTech = Object.keys(techMap).reduce((acc, tech) => {
+                techMap[tech].forEach(ext => {
+                    acc[ext] = tech;
+                });
+                return acc;
+            }, {}),
+            defaultExts = Object.keys(extToTech),
+            generators = require('./generators'),
+            namingOptions = naming || 'react',
+            bemNaming = bn(namingOptions);
 
-        const rootEntity = path.basename(filename).split('.')[0];
+            debugger;
+            const node = p.node;
 
-        context = bemNaming.parse(rootEntity);
+            if (
+                node.callee.type === 'Identifier' &&
+                node.callee.name === 'require' &&
+                node.arguments[0] && node.arguments[0].value
+            ) {
+                const bemFiles = bemImport
+                    .parse(node.arguments[0].value, path.basename(filename).split('.')[0])
+                    // expand entities by all provided levels
+                    .reduce((acc, entity) => {
+                        levels.forEach(layer => {
+                            // if entity has tech get extensions for it or exactly it,
+                            // otherwise expand entities by default extensions
+                            (
+                                entity.tech ?
+                                    techMap[entity.tech] || [entity.tech] :
+                                    defaultExts
+                            ).forEach(tech => {
+                                acc.push(BemCell.create({ entity, tech, layer }));
+                            });
+                        });
+                        return acc;
+                    }, [])
+                    // find path for every entity and check it existance
+                    .map(bemCell => {
+                        const entityPath = path.resolve(
+                                process.cwd(),
+                                bemFs.path(bemCell, namingOptions)
+                            );
+                        // BemFile
+                        return {
+                            cell : bemCell,
+                            exist : fs.existsSync(entityPath),
+                            path : entityPath
+                        };
+                    });
 
-        getEntityFiles = entity => {
-          const prefixes = bemLevels.map(level => path.resolve(
-            process.env.BEM_CWD || process.cwd(),
-            path.join(
-              level,
-              entity.block,
-              entity.elem? `${namingOptions.elemDirPrefix}${entity.elem}` : '',
-              entity.modName? `${namingOptions.modDirPrefix}${entity.modName}` : '',
-              bemNaming.stringify(entity))));
 
-          return bemTechs.reduce((res, tech) =>
-            res.concat(prefixes.map(prefix => `${prefix}.${tech}`)),
-            []);
-        };
-      },
-      ImportDeclaration(p, { file: { opts: { filename } } }) {
-        if(p.node.source.value.match(/^(b|e|m)\:/)) {
-          const localEntityName = p.node.specifiers[0] && p.node.specifiers[0].local.name;
+                    if (!bemFiles.length) {
+                        return;
+                    }
 
-          const importString = p.node.source.value;
 
-          let requireIdx = null;
+                    /**
+                     * techToFiles:
+                     *   js: [enity, entity]
+                     *   css: [entity, entity, entity]
+                     *   i18n: [entity]
+                     */
+                    const techToFiles = {},
+                        existsEntities = {},
+                        errEntities = {};
 
-          const currentEntityRequires = parseEntityImport(importString, context).map(entity => {
-            const possibleEntityFiles = getEntityFiles(entity);
+                    bemFiles.forEach(file => {
+                        if(file.exist) {
+                            (techToFiles[file.cell.tech] || (techToFiles[file.cell.tech] = [])).push(file);
+                            existsEntities[file.cell.entity.id] = true;
 
-            const requires = possibleEntityFiles.filter(fs.existsSync).map((entityFile, i) => {
-              !entity.modName && isFileJsModule(entityFile) && (requireIdx = i);
+                            if(file.cell.entity.mod && !file.cell.entity.isSimpleMod()) {
+                                // Add existence for `_mod` if `_mod_val` exists.
+                                existsEntities[BemEntityName.create({
+                                    block : file.cell.entity.block,
+                                    elem : file.cell.entity.elem,
+                                    modName : file.cell.entity.modName
+                                }).id] = true;
+                            }
+                        } else {
+                            existsEntities[file.cell.entity.id] ||
+                                (existsEntities[file.cell.entity.id]  = false);
+                            (errEntities[file.cell.entity.id] ||
+                                (errEntities[file.cell.entity.id] = [])).push(file);
+                        }
+                    });
 
-              let pa = path.relative(path.dirname(filename), entityFile);
-              if(pa.charAt(0) !== '.') {
-                  pa = `./${pa}`;
-              }
-              return t.callExpression(
-                t.identifier('require'),
-                [t.stringLiteral(pa)]
-              );
-            });
+                    Object.keys(existsEntities).forEach(fileId => {
+                        // check if entity has no tech to resolve
+                        if(!existsEntities[fileId]) {
+                            errEntities[fileId].forEach(file => {
+                                console.warn(`${logSymbols.warning} BEM-Module not found: ${file.path}`);
+                            });
+                        }
+                    });
 
-            return { entity, requires };
-          });
+                    Object.keys(techToFiles).forEach(tech => {
+                        console.log('ext:', tech);
+                        console.log('tech:', extToTech[tech]);
+                        techToFiles[tech].forEach(file => {
+                            console.log(file.cell.entity.id);
+                        });
+                    });
+                    // Each tech has own generator
+                    var value = Object.keys(techToFiles).map(tech =>
+                        (generators[extToTech[tech] || tech] || generators['*'])(techToFiles[tech])
+                    ).join('\n')
 
-          const requires = currentEntityRequires.reduce((res, entity) => {
-            if(!entity.requires.length) {
-              console.log(`${logSymbols.warning}  Can't find declaration for BEM-entity '${bemNaming.stringify(entity.entity)}'. Maybe it has tech wich doesn't resolve in '${process.env.NODE_ENV}' env.`);
-            }
+                    debugger;
+                    console.log(value);
+                    var tmpl = template(value);
+                    p.replaceWith(tmpl());
 
-            return res.concat(entity.requires);
-          }, []);
-
-          const idx = requireIdx !== null;
-          const requiresAst = t.arrayExpression(requires);
-          const combinedAst = idx ? t.memberExpression(
-            requiresAst,
-            t.numericLiteral(requireIdx),
-            true
-          ) : requiresAst;
-
-          const replace = idx ? t.conditionalExpression(
-            t.memberExpression(
-              combinedAst,
-              t.identifier('default')
-            ),
-            t.callExpression(
-              t.memberExpression(
-                t.memberExpression(
-                  combinedAst,
-                  t.identifier('default')
-                ),
-                t.identifier('applyDecls')
-              ),
-              []
-            ),
-            t.callExpression(
-              t.memberExpression(
-                combinedAst,
-                t.identifier('applyDecls')
-              ),
-              []
-            )
-          ) : combinedAst;
-
-          p.replaceWith(
-            localEntityName ? t.variableDeclaration(
-              'const',
-              [t.variableDeclarator(
-                t.identifier(localEntityName),
-                replace
-              )]
-            ) : replace
-          );
+                    // node.update(
+                    //     // Each tech has own generator
+                    //     Object.keys(techToFiles).map(tech =>
+                    //         (generators[extToTech[tech] || tech] || generators['*'])(techToFiles[tech])
+                    //     ).join('\n')
+                    // );
         }
       }
     }
   };
 }
-
-function parseEntityImport(entityImport, ctx) {
-  const res = [];
-  const main = {};
-
-  entityImport.split(' ').forEach((importToken, i) => {
-    const split = importToken.split(':');
-    const type = split[0];
-    const tail = split[1];
-
-    if(!i) {
-      main.block = type === 'b'? tail : ctx.block;
-      type === 'e' && (main.elem = tail);
-    } else if(type === 'e') {
-      main.elem = tail;
-    }
-
-    switch(type) {
-      case 'b':
-      case 'e':
-        res.length || res.push(main);
-      break;
-
-      case 'm':
-        const splitMod = tail.split('=');
-        const modName = splitMod[0];
-        const modVals = splitMod[1];
-
-        if(modVals) {
-          modVals.split('|').forEach(modVal => {
-            res.push(Object.assign({}, main, { modName, modVal }));
-          });
-        } else {
-          res.push(Object.assign({}, main, { modName }));
-        }
-      break;
-    }
-  });
-
-  return res;
-}
-
-function isFileJsModule(file) { return path.extname(file) === '.js' };

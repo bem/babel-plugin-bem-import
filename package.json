@@ -25,7 +25,11 @@
   },
   "homepage": "https://github.com/awinogradov/babel-plugin-bem-import#readme",
   "dependencies": {
-    "bem-naming": "^1.0.1",
+    "@bem/cell": "^0.2.4",
+    "@bem/entity-name": "^1.3.0",
+    "@bem/fs-scheme": "^2.1.0",
+    "@bem/import-notation": "^1.0.0",
+    "@bem/naming": "^2.0.0-3",
     "log-symbols": "^1.0.2"
   },
   "devDependencies": {
