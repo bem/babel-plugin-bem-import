@@ -5,8 +5,10 @@ const fs = require('fs'),
     BemEntityName = require('@bem/entity-name'),
     bemFs = require('@bem/fs-scheme')(),
     bemImport = require('@bem/import-notation'),
+    requiredPath = require('required-path'),
     template = require('babel-template'),
-    logSymbols = require('log-symbols');
+    logSymbols = require('log-symbols'),
+    generators = require('./generators');
 
 module.exports = function({ types: t }) {
 
@@ -24,7 +26,6 @@ return {
                 return acc;
             }, {}),
             defaultExts = Object.keys(extToTech),
-            generators = require('./generators'),
             namingOptions = naming || 'react',
             bemNaming = bn(namingOptions);
 
@@ -43,11 +44,7 @@ return {
                     levels.forEach(layer => {
                         // if entity has tech get extensions for it or exactly it,
                         // otherwise expand entities by default extensions
-                        (
-                            entity.tech ?
-                                techMap[entity.tech] || [entity.tech] :
-                                defaultExts
-                        ).forEach(tech => {
+                        (entity.tech? techMap[entity.tech] || [entity.tech] : defaultExts).forEach(tech => {
                             acc.push(BemCell.create({ entity, tech, layer }));
                         });
                     });
@@ -55,17 +52,14 @@ return {
                 }, [])
                 // find path for every entity and check it existance
                 .map(bemCell => {
-                    const entityPath = path.resolve(
-                            process.cwd(),
-                            bemFs.path(bemCell, namingOptions)
-                        );
-
-                    const pathHack = path.relative(path.dirname(filename), entityPath);
+                    const entityPath = path.resolve(process.cwd(), bemFs.path(bemCell, namingOptions));
                     // BemFile
                     return {
                         cell : bemCell,
                         exist : fs.existsSync(entityPath),
-                        path : pathHack
+                        // prepare path for require cause relative returns us string that we couldn't require
+                        path : requiredPath(path.relative(path.dirname(filename), entityPath))
+
                     };
                 });
 
@@ -84,33 +78,30 @@ return {
                     errEntities = {};
 
                 bemFiles.forEach(file => {
-                    if(file.exist) {
-                        (techToFiles[file.cell.tech] || (techToFiles[file.cell.tech] = [])).push(file);
-                        existsEntities[file.cell.entity.id] = true;
+                    const {cell: {tech,  entity}} = file,
+                        {id, block, elem, modName} = entity;
 
-                        if(file.cell.entity.mod && !file.cell.entity.isSimpleMod()) {
-                            // Add existence for `_mod` if `_mod_val` exists.
-                            existsEntities[BemEntityName.create({
-                                block : file.cell.entity.block,
-                                elem : file.cell.entity.elem,
-                                modName : file.cell.entity.modName
-                            }).id] = true;
-                        }
-                    } else {
-                        existsEntities[file.cell.entity.id] ||
-                            (existsEntities[file.cell.entity.id]  = false);
-                        (errEntities[file.cell.entity.id] ||
-                            (errEntities[file.cell.entity.id] = [])).push(file);
+                    if(!file.exist) {
+                        existsEntities[id] || (existsEntities[id]  = false);
+                        (errEntities[id] || (errEntities[id] = [])).push(file);
+                        return;
                     }
+
+                    (techToFiles[tech] || (techToFiles[tech] = [])).push(file);
+                    existsEntities[id] = true;
+
+                    // Add existence for `_mod` if `_mod_val` exists.
+                    entity.mod && !entity.isSimpleMod() &&
+                        (existsEntities[
+                            BemEntityName.create({ block, elem, modName }).id
+                        ] = true);
                 });
 
                 Object.keys(existsEntities).forEach(fileId => {
                     // check if entity has no tech to resolve
-                    if(!existsEntities[fileId]) {
-                        errEntities[fileId].forEach(file => {
-                            console.warn(`${logSymbols.warning} BEM-Module not found: ${file.path}`);
-                        });
-                    }
+                    existsEntities[fileId] || errEntities[fileId].forEach(file => {
+                        console.warn(`${logSymbols.warning} BEM module not found: ${file.path}`);
+                    });
                 });
                 // Each tech has own generator
                 const values = Object.keys(techToFiles).map(tech =>
