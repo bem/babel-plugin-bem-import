@@ -34,7 +34,7 @@ return {
             if(!(
                 p.node.callee.type === 'Identifier' &&
                 p.node.callee.name === 'require' &&
-                Object(p.node.arguments[0]).type === 'Literal'
+                Object(p.node.arguments[0]).value
             )) return;
 
             const bemFiles = bemImport.parse(
@@ -105,10 +105,13 @@ return {
                 });
             });
             // Each tech has own generator
-            const values = Object.keys(techToFiles).map(tech =>
-                (generators[extToTech[tech] || tech] || generators['*'])(techToFiles[tech])
-            );
-            values.length && p.replaceWith(template(values.join('\n'))());
+            const values = Object.keys(techToFiles)
+                // js tech is always last
+                .sort(a => extToTech[a] === 'js')
+                .map(tech =>
+                    (generators[extToTech[tech] || tech] || generators['*'])(techToFiles[tech])
+                );
+            values.length && p.replaceWith(template(`(${values.join(',\n')})`)());
         }
     }
 };
