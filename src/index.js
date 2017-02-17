@@ -30,6 +30,8 @@ return {
                 namingOptions = naming || 'react',
                 bemNaming = bn(namingOptions);
 
+            opts.langs && (generators.i18n = require('./generators/i18n').generate(opts.langs));
+
             // skip all except require('bemstring')
             if(!(
                 p.node.callee.type === 'Identifier' &&
