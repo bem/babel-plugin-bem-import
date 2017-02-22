@@ -113,7 +113,7 @@ return {
                 .map(tech =>
                     (generators[extToTech[tech] || tech] || generators['*'])(techToFiles[tech])
                 );
-            values.length && p.replaceWith(template(`(${values.join(',\n')})`)());
+            p.replaceWith(values.length ? template(`(${values.join(',\n')})`)() : t.EmptyStatement());
         }
     }
 };
