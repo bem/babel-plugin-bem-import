@@ -12,7 +12,7 @@ function generateI18n(langs, files) {
     return files
         .reduce((acc, file) => {
             return acc.concat(langs.map(lang => strLang(file, lang)));
-        }, ['(function() {', `var core = require('${requiredPath(path.join(__dirname, "core"))}');`])
+        }, ['(function() {', `var core = require('bem-i18n');`])
         .concat([
             'console.error("Define process.env.BEM_LANG");',
             'return function(){};\n})()'
