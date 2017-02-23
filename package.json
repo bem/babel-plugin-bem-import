@@ -24,6 +24,9 @@
     "url": "https://github.com/awinogradov/babel-plugin-bem-import/issues"
   },
   "homepage": "https://github.com/awinogradov/babel-plugin-bem-import#readme",
+  "files": [
+    "dist/"
+  ],
   "dependencies": {
     "@bem/cell": "^0.2.4",
     "@bem/entity-name": "^1.3.0",
