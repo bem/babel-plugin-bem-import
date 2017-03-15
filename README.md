@@ -23,11 +23,7 @@ import BlockElem from 'b:block e:elem m:modName=modVal1|modVal2';
 {
   "plugins": [
     ["bem-import", {
-      "naming": {
-        "elem": "__",
-        "elemDirPrefix": "__",
-        "modDirPrefix": "_"
-      },
+      "naming": "react",
       "levels": [
         "./common.blocks",
         "./desktop.blocks"
@@ -59,31 +55,31 @@ npm i -S bem-i18n
 On file system:
 
 ```
-blocks/attach/
-├── attach.react.js
-├── attach.i18n
+blocks/Attach/
+├── Attach.react.js
+├── Attach.i18n
 │   ├── en.js
 │   ├── ru.js
 │   └── tr.js
-└── attach.spec.js
+└── Attach.spec.js
 ```
 
 `en.js`, `ru.js` and `tr.js` are keysets and should be common.js modules.
 
 ```sh
-$ cat common.blocks/attach/attach.i18n/tr.js
+$ cat blocks/Attach/Attach.i18n/tr.js
 module.exports = {
-    "attach": {
+    "Attach": {
         "button-text": "Dosya seç",
         "no-file": "dosya seçilmedi"
     }
 };
 ```
 
-inside `attach.react.js`:
+inside `Attach.react.js`:
 
 ```js
-import i18n from `b:attach t:i18n`
+import i18n from `b:Attach t:i18n`
 
 console.log(i18n('button-text')) // → Dosya seç
 ```
@@ -95,15 +91,15 @@ var i18n = (function() {
     var core = require('bem-i18n');
 
     if (process.env.BEM_LANG === 'ru') {
-        return core().decl(require('../attach.i18n/ru'))('attach')
+        return core().decl(require('../Attach.i18n/ru'))('Attach')
     }
 
     if (process.env.BEM_LANG === 'en') {
-        return core().decl(require('../attach.i18n/en'))('attach')
+        return core().decl(require('../Attach.i18n/en'))('Attach')
     }
 
     if (process.env.BEM_LANG === 'tr') {
-        return core().decl(require('../attach.i18n/tr'))('attach')
+        return core().decl(require('../Attach.i18n/tr'))('Attach')
     }
 })();
 
