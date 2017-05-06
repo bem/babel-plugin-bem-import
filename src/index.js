@@ -5,6 +5,7 @@ const fs = require('fs'),
     BemEntityName = require('@bem/entity-name'),
     bemFs = require('@bem/fs-scheme')(),
     bemImport = require('@bem/import-notation'),
+    bemConfig = require('bem-config')(),
     requiredPath = require('required-path'),
     template = require('babel-template'),
     logSymbols = require('log-symbols'),
@@ -15,7 +16,9 @@ module.exports = function({ types: t }) {
 return {
     visitor: {
         CallExpression(p, { opts, file: { opts: { filename } } }) {
-            const { naming, levels, techs=['js'] } = opts,
+            const { naming, techs=['js'] } = opts,
+                levelsMap = bemConfig.levelMapSync() || opts.levels,
+                levels = Array.isArray(levelsMap) ? levelsMap : Object.keys(levelsMap),
                 techMap = techs.reduce((acc, tech) => {
                     acc[tech] || (acc[tech] = [tech]);
                     return acc;
@@ -56,14 +59,14 @@ return {
             }, [])
             // find path for every entity and check it existance
             .map(bemCell => {
-                const entityPath = path.resolve(bemFs.path(bemCell, namingOptions));
+                const localNamingOpts = levelsMap[bemCell.layer].naming || namingOptions;
+                const entityPath = path.resolve(bemFs.path(bemCell, localNamingOpts));
                 // BemFile
                 return {
                     cell : bemCell,
                     exist : fs.existsSync(entityPath),
                     // prepare path for require cause relative returns us string that we couldn't require
                     path : requiredPath(path.relative(path.dirname(filename), entityPath))
-
                 };
             });
 
