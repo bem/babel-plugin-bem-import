@@ -3,7 +3,7 @@ const fs = require('fs'),
     bn = require('@bem/naming'),
     BemCell = require('@bem/cell'),
     BemEntityName = require('@bem/entity-name'),
-    bemFs = require('@bem/fs-scheme')(),
+    bemFs = require('@bem/fs-scheme'),
     bemImport = require('@bem/import-notation'),
     bemConfig = require('bem-config')(),
     requiredPath = require('required-path'),
@@ -60,7 +60,8 @@ return {
             // find path for every entity and check it existance
             .map(bemCell => {
                 const localNamingOpts = levelsMap[bemCell.layer].naming || namingOptions;
-                const entityPath = path.resolve(bemFs.path(bemCell, localNamingOpts));
+                const fsScheme = levelsMap[bemCell.layer].scheme || 'nested';
+                const entityPath = path.resolve(bemFs(fsScheme).path(bemCell, localNamingOpts));
                 // BemFile
                 return {
                     cell : bemCell,
