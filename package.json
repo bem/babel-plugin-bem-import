@@ -34,6 +34,7 @@
     "@bem/import-notation": "^1.0.0",
     "@bem/naming": "^2.0.0-3",
     "babel-template": "^6.23.0",
+    "bem-config": "^3.2.3",
     "log-symbols": "^1.0.2",
     "required-path": "^1.0.1"
   },
