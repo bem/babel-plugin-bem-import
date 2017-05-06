@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/awinogradov/babel-plugin-bem-import.git"
+    "url": "git+https://github.com/bem/babel-plugin-bem-import.git"
   },
   "keywords": [
     "babel",
@@ -19,29 +19,28 @@
     "babylon"
   ],
   "author": "Anton Winogradov <winogradovaa@gmail.com>",
-  "license": "MIT",
+  "license": "MPL-2.0",
   "bugs": {
-    "url": "https://github.com/awinogradov/babel-plugin-bem-import/issues"
+    "url": "https://github.com/bem/babel-plugin-bem-import/issues"
   },
-  "homepage": "https://github.com/awinogradov/babel-plugin-bem-import#readme",
+  "homepage": "https://github.com/bem/babel-plugin-bem-import#readme",
   "files": [
     "dist/"
   ],
   "dependencies": {
-    "@bem/cell": "^0.2.4",
-    "@bem/entity-name": "^1.3.0",
+    "@bem/cell": "^0.2.6",
+    "@bem/entity-name": "^1.5.0",
     "@bem/fs-scheme": "^2.1.0",
-    "@bem/import-notation": "^1.0.0",
-    "@bem/naming": "^2.0.0-3",
-    "babel-template": "^6.23.0",
+    "@bem/import-notation": "^1.1.2",
+    "@bem/naming": "^2.0.0-6",
+    "babel-template": "^6.24.0",
     "bem-config": "^3.2.3",
     "log-symbols": "^1.0.2",
     "required-path": "^1.0.1"
   },
   "devDependencies": {
-    "babel-cli": "^6.18.0",
-    "babel-plugin-transform-object-rest-spread": "^6.8.0",
-    "babel-preset-es2015": "^6.9.0",
-    "babel-preset-es2015-loose": "^7.0.0"
+    "babel-cli": "^6.24.1",
+    "babel-plugin-transform-object-rest-spread": "^6.23.0",
+    "babel-preset-es2015": "^6.24.1"
   }
 }
