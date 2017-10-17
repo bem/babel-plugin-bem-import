@@ -15,7 +15,7 @@ module.exports =  function() {
         if(!data) throw Error('i18n need to be filled with data');
         var val = data[keyset] && data[keyset][key];
         return typeof val === 'undefined'?
-        keyset + ':' + key :
+            keyset + ':' + key :
             typeof val === 'string'?
                 val :
                 val.call(i18n, params, i18n);
