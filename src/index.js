@@ -17,7 +17,7 @@ module.exports = function({ types : t }) {
         visitor : {
             CallExpression(p, { opts, file : { opts : { filename } } }) {
                 const { naming, techs=['js'] } = opts,
-                    levelsMap = bemConfig.levelMapSync() || opts.levels,
+                    levelsMap = opts.levels || bemConfig.levelMapSync(),
                     levels = Array.isArray(levelsMap) ? levelsMap : Object.keys(levelsMap),
                     techMap = techs.reduce((acc, tech) => {
                         acc[tech] || (acc[tech] = [tech]);
