@@ -30,6 +30,7 @@ module.exports = function({ types : t }) {
                         return acc;
                     }, {}),
                     defaultExts = Object.keys(extToTech),
+                    unifyPath = path => path.replace(/\\/g, '/'),
                     namingOptions = naming || 'react',
                     bemNaming = bn(namingOptions);
 
@@ -67,7 +68,7 @@ module.exports = function({ types : t }) {
                             cell : bemCell,
                             exist : fs.existsSync(entityPath),
                             // prepare path for require cause relative returns us string that we couldn't require
-                            path : requiredPath(path.relative(path.dirname(filename), entityPath))
+                            path : unifyPath(requiredPath(path.relative(path.dirname(filename), entityPath)))
                         };
                     });
 
