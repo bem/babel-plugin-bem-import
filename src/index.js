@@ -78,11 +78,11 @@ module.exports = function({ types : t }) {
                 if(!bemFiles.length) return;
 
                 /**
-             * techToFiles:
-             *   js: [enity, entity]
-             *   css: [entity, entity, entity]
-             *   i18n: [entity]
-             */
+                 * techToFiles:
+                 *   js: [enity, entity]
+                 *   css: [entity, entity, entity]
+                 *   i18n: [entity]
+                 */
                 const techToFiles = {},
                     existsEntities = {},
                     errEntities = {};
