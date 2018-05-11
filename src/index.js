@@ -78,11 +78,11 @@ module.exports = function({ types : t }) {
                 if(!bemFiles.length) return;
 
                 /**
-             * techToFiles:
-             *   js: [enity, entity]
-             *   css: [entity, entity, entity]
-             *   i18n: [entity]
-             */
+                 * techToFiles:
+                 *   js: [enity, entity]
+                 *   css: [entity, entity, entity]
+                 *   i18n: [entity]
+                 */
                 const techToFiles = {},
                     existsEntities = {},
                     errEntities = {};
@@ -109,14 +109,14 @@ module.exports = function({ types : t }) {
                 });
 
                 Object.keys(existsEntities).forEach(fileId => {
-                // check if entity has no tech to resolve
+                    // check if entity has no tech to resolve
                     existsEntities[fileId] || errEntities[fileId].forEach(file => {
                         console.warn(`${logSymbols.warning} BEM module not found: ${file.path}`);
                     });
                 });
                 // Each tech has own generator
                 const values = Object.keys(techToFiles)
-                // js tech is always last
+                    // js tech is always last
                     .sort(a => extToTech[a] === 'js')
                     .map(tech =>
                         (generators[extToTech[tech] || tech] || generators['*'])(techToFiles[tech])
