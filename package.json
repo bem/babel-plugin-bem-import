@@ -5,7 +5,10 @@
   "main": "dist/index.js",
   "scripts": {
     "dist": "babel src -d dist",
-    "prepublishOnly": "npm run dist"
+    "prepublishOnly": "npm run dist",
+    "pretest": "npm run dist",
+    "specs": "mocha",
+    "test": "npm run specs"
   },
   "repository": {
     "type": "git",
@@ -39,8 +42,13 @@
     "required-path": "1.0.1"
   },
   "devDependencies": {
-    "babel-cli": "6.26.0",
-    "babel-plugin-transform-object-rest-spread": "6.26.0",
-    "babel-preset-es2015": "6.24.1"
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.3",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-preset-es2015": "^6.24.1",
+    "chai": "^4.1.2",
+    "common-tags": "^1.8.0",
+    "mocha": "^5.2.0",
+    "mock-fs": "^4.5.0"
   }
 }
