@@ -1,15 +1,13 @@
-const plugin = require('..');
-const babel = require('babel-core');
-
+const mock = require('mock-fs');
+const { expect } = require('chai');
 const { stripIndents } = require('common-tags');
-const mockFS = require('mock-fs');
-const chai = require('chai');
-const expect = chai.expect;
+
+const { transformSourceWithOptions } = require('./helpers');
 
 
 describe('Pugin', () => {
-    it('Defaults', async () => {
-        const mock = {
+    it('Defaults', () => {
+        const fs = {
             'index.js' : `require('b:button')`,
             'common.blocks/button' : {
                 'button.js' : `({ block: 'button' })`,
@@ -19,32 +17,23 @@ describe('Pugin', () => {
 
         const options = {
             // Required option
-            "levels": ['common.blocks'],
-            // "naming": {
-            //   "elem": "__",
-            //   "elemDirPrefix": "__",
-            //   "modDirPrefix": "_"
-            // },
+            levels: ['common.blocks']
         };
 
-        mockFS(mock);
+        mock(fs);
 
-        const source = babel.transform(mock['index.js'], {
-            // cwd: process.cwd(),
-            filename: 'index.js',
-            babelrc: false,
-            plugins: [[plugin, { levels: options.levels, /* naming: options.naming */ }]]
-        }).code;
-
-        // console.log(source);
+        const source = transformSourceWithOptions(fs['index.js'], options);
 
         /* eslint-disable max-len */
         expect(source).to.eql(stripIndents`
+
         (require('./common.blocks/button/button.js').default || require('./common.blocks/button/button.js')).applyDecls();
+
         `);
         /* eslint-enable max-len */
+    });
 
-        mockFS.restore();
+    afterEach(() => {
+        mock.restore();
     });
 });
-
