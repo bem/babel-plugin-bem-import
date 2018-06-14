@@ -1,8 +1,7 @@
-const mock = require('mock-fs');
 const { expect } = require('chai');
 const { stripIndents } = require('common-tags');
 
-const { transformSourceWithOptions } = require('./helpers');
+const { babel } = require('./helpers');
 
 describe('Pugin', () => {
     it('Defaults', () => {
@@ -18,8 +17,7 @@ describe('Pugin', () => {
             levels: ['common.blocks']
         };
 
-        mock(fs);
-        const source = transformSourceWithOptions(fs['index.js'], options);
+        const source = babel('index.js', { options, fs });
 
         /* eslint-disable max-len */
         expect(source).to.eql(stripIndents`
@@ -28,9 +26,5 @@ describe('Pugin', () => {
 
         `);
         /* eslint-enable max-len */
-    });
-
-    afterEach(() => {
-        mock.restore();
     });
 });

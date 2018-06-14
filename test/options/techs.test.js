@@ -1,8 +1,7 @@
-const mock = require('mock-fs');
 const { expect } = require('chai');
 const { stripIndents } = require('common-tags');
 
-const { transformSourceWithOptions } = require('../helpers');
+const { babel } = require('../helpers');
 
 describe('Options', () => {
     describe('techs && techMap', () => {
@@ -28,8 +27,7 @@ describe('Options', () => {
             };
 
 
-            mock(fs);
-            const source = transformSourceWithOptions(fs['index.ts'], options);
+            const source = babel('index.ts', { options, fs });
             /* eslint-disable max-len */
             expect(source).to.eql(stripIndents`
                 require('./common.blocks/button/button.ts'), (require('./desktop.blocks/button/button.ts').default || require('./desktop.blocks/button/button.ts')).applyDecls();
@@ -59,8 +57,7 @@ describe('Options', () => {
                 }
             };
 
-            mock(fs);
-            const source = transformSourceWithOptions(fs['index.ts'], options);
+            const source = babel('index.ts', { options, fs });
 
             console.log(source);
         });
@@ -82,8 +79,7 @@ describe('Options', () => {
                 }
             };
 
-            mock(fs);
-            const source = transformSourceWithOptions(fs['index.ts'], options);
+            const source = babel('index.ts', { options, fs });
 
             console.log(source);
         });
@@ -104,8 +100,7 @@ describe('Options', () => {
                 techs : ['js', 'css']
             };
 
-            mock(fs);
-            const source = transformSourceWithOptions(fs['index.js'], options);
+            const source = babel('index.js', { options, fs });
 
             /* eslint-disable max-len */
             expect(source).to.eql(stripIndents`
@@ -113,9 +108,5 @@ describe('Options', () => {
             `);
             /* eslint-enable max-len */
         });
-    });
-
-    afterEach(() => {
-        mock.restore();
     });
 });
