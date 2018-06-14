@@ -4,7 +4,6 @@ const { stripIndents } = require('common-tags');
 
 const { transformSourceWithOptions } = require('./helpers');
 
-
 describe('Pugin', () => {
     it('Defaults', () => {
         const fs = {
@@ -14,14 +13,12 @@ describe('Pugin', () => {
                 'button.css' : `.button { }`
             }
         };
-
         const options = {
             // Required option
             levels: ['common.blocks']
         };
 
         mock(fs);
-
         const source = transformSourceWithOptions(fs['index.js'], options);
 
         /* eslint-disable max-len */
