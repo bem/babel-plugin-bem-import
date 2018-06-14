@@ -7,8 +7,11 @@
     "dist": "babel src -d dist",
     "prepublishOnly": "npm run dist",
     "pretest": "npm run dist",
-    "specs": "mocha",
-    "test": "npm run specs"
+    "specs": "mocha --recursive",
+    "test": "npm run specs",
+    "cover": "nyc npm test",
+    "report:html": "nyc report --reporter=html && open coverage/index.html",
+    "report:lcov": "nyc report --reporter=text-lcov"
   },
   "repository": {
     "type": "git",
@@ -49,6 +52,7 @@
     "chai": "^4.1.2",
     "common-tags": "^1.8.0",
     "mocha": "^5.2.0",
-    "mock-fs": "^4.5.0"
+    "mock-fs": "^4.5.0",
+    "nyc": "^12.0.2"
   }
 }

@@ -8,7 +8,7 @@ matrix:
     - node_js: "9"
       env: COVERALLS=1
 
-# after_success:
-#   - if [ "x$COVERALLS" = "x1" ] && npm i coveralls; then
-#       npm run cover -- --coverageReporters=text-lcov | coveralls;
-#     fi
+after_success:
+  - if [ "x$COVERALLS" = "x1" ] && npm i coveralls; then
+      npm run cover && npm run report:lcov | coveralls;
+    fi
