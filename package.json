@@ -5,7 +5,13 @@
   "main": "dist/index.js",
   "scripts": {
     "dist": "babel src -d dist",
-    "prepublishOnly": "npm run dist"
+    "prepublishOnly": "npm run dist",
+    "pretest": "npm run dist",
+    "specs": "mocha --recursive",
+    "test": "npm run specs",
+    "cover": "nyc npm test",
+    "report:html": "nyc report --reporter=html && open coverage/index.html",
+    "report:lcov": "nyc report --reporter=text-lcov"
   },
   "repository": {
     "type": "git",
@@ -30,7 +36,7 @@
   "dependencies": {
     "@bem/cell": "0.2.6",
     "@bem/entity-name": "1.5.0",
-    "@bem/fs-scheme": "2.1.0",
+    "@bem/fs-scheme": "2.2.0",
     "@bem/import-notation": "1.1.2",
     "@bem/naming": "2.0.0-6",
     "babel-template": "6.26.0",
@@ -39,8 +45,14 @@
     "required-path": "1.0.1"
   },
   "devDependencies": {
-    "babel-cli": "6.26.0",
-    "babel-plugin-transform-object-rest-spread": "6.26.0",
-    "babel-preset-es2015": "6.24.1"
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.3",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-preset-es2015": "^6.24.1",
+    "chai": "^4.1.2",
+    "common-tags": "^1.8.0",
+    "mocha": "^5.2.0",
+    "mock-fs": "^4.5.0",
+    "nyc": "^12.0.2"
   }
 }
