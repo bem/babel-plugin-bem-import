@@ -25,9 +25,9 @@ describe('Options', () => {
             const source = babel('index.js', { options, fs });
 
             /* eslint-disable max-len */
-            expect(source).to.eql(stripIndents`
-                require('./common.blocks/button/button.js'), (require('./desktop.blocks/button/button.js').default || require('./desktop.blocks/button/button.js')).applyDecls();
-            `);
+            expect(source).to.eql(stripIndents`[(
+                require('./common.blocks/button/button.js'), (require('./desktop.blocks/button/button.js').default || require('./desktop.blocks/button/button.js')).applyDecls()
+            )][0];`.replace(/\n/g, ''));
             /* eslint-enable max-len */
         });
     });

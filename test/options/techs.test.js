@@ -29,9 +29,10 @@ describe('Options', () => {
 
             const source = babel('index.ts', { options, fs });
             /* eslint-disable max-len */
-            expect(source).to.eql(stripIndents`
-                require('./common.blocks/button/button.ts'), (require('./desktop.blocks/button/button.ts').default || require('./desktop.blocks/button/button.ts')).applyDecls();
-            `);
+            expect(source).to.eql(stripIndents`[(
+                require('./common.blocks/button/button.ts'), 
+                (require('./desktop.blocks/button/button.ts').default || require('./desktop.blocks/button/button.ts')).applyDecls()
+            )][0];`.replace(/\n/g, ''));
             /* eslint-enable max-len */
         });
 
@@ -103,9 +104,10 @@ describe('Options', () => {
             const source = babel('index.js', { options, fs });
 
             /* eslint-disable max-len */
-            expect(source).to.eql(stripIndents`
-                require('./common.blocks/button/button.css'), (require('./common.blocks/button/button.js').default || require('./common.blocks/button/button.js')).applyDecls();
-            `);
+            expect(source).to.eql(stripIndents`[
+                (require('./common.blocks/button/button.js').default || require('./common.blocks/button/button.js')).applyDecls()
+                , require('./common.blocks/button/button.css')
+            ][0];`.replace(/\n/g, ''));
             /* eslint-enable max-len */
         });
     });
