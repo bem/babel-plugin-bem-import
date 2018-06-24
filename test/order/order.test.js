@@ -140,7 +140,8 @@ describe('order', () => {
 
         const css = extractCSSFromFile('index.js', { options, fs });
 
-        expect(getOrder(css)).to.eql([0, 1, 2, 3]);
+        // NOTE: it's okay to have to blocks webpack would remove second css file
+        expect(getOrder(css)).to.eql([0, 1, 0, 2, 3]);
     });
 
     it('js: order of modifiers required inside block', () => {

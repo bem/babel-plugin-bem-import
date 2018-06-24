@@ -32,7 +32,11 @@ module.exports = function({ types : t }) {
                     defaultExts = Object.keys(extToTech),
                     unifyPath = path => path.replace(/\\/g, '/'),
                     namingOptions = naming || 'react',
-                    bemNaming = bn(namingOptions);
+                    bemNaming = bn(namingOptions),
+                    currentEntityName = path.basename(filename),
+                    currentEntity = bemNaming.parse(currentEntityName.split('.')[0]),
+                    currentEntityTech = extToTech[currentEntityName.substr(currentEntityName.indexOf('.') + 1)];
+
 
                 opts.langs && (generators.i18n = require('./generators/i18n').generate(opts.langs));
 
@@ -45,7 +49,7 @@ module.exports = function({ types : t }) {
 
                 const bemFiles = bemImport.parse(
                     p.node.arguments[0].value,
-                    bemNaming.parse(path.basename(filename).split('.')[0])
+                    currentEntity
                 )
                     // expand entities by all provided levels
                     .reduce((acc, entity) => {
@@ -53,7 +57,13 @@ module.exports = function({ types : t }) {
                             // if entity has tech get extensions for it or exactly it,
                             // otherwise expand entities by default extensions
                             (entity.tech? techMap[entity.tech] || [entity.tech] : defaultExts).forEach(tech => {
-                                acc.push(BemCell.create({ entity, tech, layer }));
+                                if(!(
+                                    currentEntity.isEqual(BemEntityName.create(entity)) &&
+                                    currentEntityTech === 'js' &&
+                                    extToTech[tech] === 'js'
+                                )) {
+                                    acc.push(BemCell.create({ entity, tech, layer }));
+                                }
                             });
                         });
                         return acc;
@@ -78,12 +88,12 @@ module.exports = function({ types : t }) {
                 if(!bemFiles.length) return;
 
                 /**
-                 * techToFiles:
+                 * extToFiles:
                  *   js: [enity, entity]
                  *   css: [entity, entity, entity]
                  *   i18n: [entity]
                  */
-                const techToFiles = {},
+                const extToFiles = {},
                     existsEntities = {},
                     errEntities = {};
 
@@ -98,14 +108,15 @@ module.exports = function({ types : t }) {
                         return;
                     }
 
-                    (techToFiles[tech] || (techToFiles[tech] = [])).push(file);
+                    (extToFiles[tech] || (extToFiles[tech] = [])).push(file);
                     existsEntities[id] = true;
 
                     // Add existence for `_mod` if `_mod_val` exists.
-                    entity.mod && !entity.isSimpleMod() &&
-                    (existsEntities[
-                        BemEntityName.create({ block, elem, modName }).id
-                    ] = true);
+                    entity.isSimpleMod() === false &&
+                        (existsEntities[BemEntityName.create({ block, elem, modName }).id] = true);
+                    // Add existance for elem if __elem_mod exists.
+                    entity.elem &&
+                        (existsEntities[BemEntityName.create({ block, elem }).id] = true);
                 });
 
                 Object.keys(existsEntities).forEach(fileId => {
@@ -114,14 +125,18 @@ module.exports = function({ types : t }) {
                         console.warn(`${logSymbols.warning} BEM module not found: ${file.path}`);
                     });
                 });
+
                 // Each tech has own generator
-                const values = Object.keys(techToFiles)
-                    // js tech is always last
-                    .sort(a => extToTech[a] === 'js')
-                    .map(tech =>
-                        (generators[extToTech[tech] || tech] || generators['*'])(techToFiles[tech])
-                    );
-                p.replaceWith(values.length ? template(`(${values.join(',\n')})`)() : t.EmptyStatement());
+                const res = Object.keys(extToFiles)
+                    // use techs from config for order
+                    // so the first one would be default, `js` in most cases
+                    .sort((a, b) => techs.indexOf(extToTech[a]) - techs.indexOf(extToTech[b]))
+                    .map((ext) => {
+                        const tech = extToTech[ext] || ext;
+                        return `${(generators[tech] || generators['*'])(extToFiles[ext])}`;
+                    });
+
+                p.replaceWith(res.length ? template(`[${res.join(',\n')}][0]`)() : t.EmptyStatement());
             }
         }
     };

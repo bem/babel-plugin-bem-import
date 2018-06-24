@@ -28,16 +28,20 @@ function readFile(fs, path) {
 function transformSourceWithOptions(path, { options, fs }) {
     mock(fs);
 
-    const source = readFile(fs, path);
-    const result = babel.transform(source, {
-        filename: path,
-        babelrc: false,
-        plugins: [[plugin, options]]
-    }).code;
+    try {
+        const source = readFile(fs, path);
+        const result = babel.transform(source, {
+            filename: path,
+            babelrc: false,
+            plugins: [[plugin, options]]
+        }).code;
 
-    mock.restore();
-
-    return result;
+        return result;
+    } catch(err) {
+        throw err;
+    } finally {
+        mock.restore();
+    }
 }
 
 module.exports = {
