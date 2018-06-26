@@ -30,5 +30,32 @@ describe('Options', () => {
             )][0];`.replace(/\n/g, ''));
             /* eslint-enable max-len */
         });
+
+        it('es: common/desktop', () => {
+            const fs = {
+                'index.js' : `import Button from 'b:button';`,
+                'common.blocks/button' : {
+                    'button.js' : `({ block: 'button', content: 'common' })`
+                },
+                'desktop.blocks/button' : {
+                    'button.js' : `({ block: 'button', content: 'desktop' })`
+                }
+            };
+            const options = {
+                levels : [
+                    'common.blocks',
+                    'desktop.blocks'
+                ]
+            };
+
+            const source = babel('index.js', { options, fs });
+
+            expect(source).to.eql(stripIndents`
+                import "./common.blocks/button/button.js";
+                import _button from "./desktop.blocks/button/button.js";
+
+                const Button = _button.applyDecls();
+            `);
+        });
     });
 });

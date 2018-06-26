@@ -17,6 +17,7 @@ module.exports = function({ types : t }) {
 
     return {
         visitor : {
+
             CallExpression(p, { opts, file : { opts : { filename } } }) {
 
                 opts.langs && (generators.i18n = require('./generators/i18n').generate(opts.langs));
@@ -28,12 +29,42 @@ module.exports = function({ types : t }) {
                     Object(p.node.arguments[0]).value
                 )) return;
 
-                const res = bemImportToFiles(p.node.arguments[0].value, opts, filename)
-                    .map(({ tech, files }) => {
-                        return `${(generators[tech] || generators['*'])(files)}`;
-                    });
+                let res = bemImportToFiles(p.node.arguments[0].value, opts, filename)
+
+                if (res === null) return;
+                if (!res.length) return p.replaceWith(t.EmptyStatement());
+
+                res = res.map(({ tech, files }) => {
+                    return `${(generators[tech] || generators['*'])(files)}`;
+                });
 
                 res.length && p.replaceWith(template(`[${res.join(',\n')}][0]`)());
+            },
+
+            ImportDeclaration(p, { opts, file: { opts : { filename, sourceType } } }) {
+
+                opts.langs && (generators.i18n = { es: require('./generators/i18n').esGenerate(opts.langs) });
+
+                const res = bemImportToFiles(p.node.source.value, opts, filename);
+                if (res === null) return;
+                if (!res.length) return p.replaceWith(t.EmptyStatement());
+
+                let name;
+                const specifiers = p.node.specifiers;
+                if (specifiers.length) {
+                    // TODO: ImportSpecifier, ImportNamespaceSpecifier and array
+                    if (specifiers[0].type === 'ImportDefaultSpecifier') {
+                        name = specifiers[0].local.name;
+                    }
+                }
+
+                const uid = id => p.scope.generateUidIdentifier(id).name;
+                const str = res.map(({ tech, files }) => {
+                    return `${(generators[tech] || generators['*'])['es'](files, name, uid)}`;
+                }).join('\n');
+
+                const tmpl = template(str, { sourceType })
+                p.replaceWithMultiple(tmpl());
             }
         }
     };
@@ -99,7 +130,7 @@ function bemImportToFiles(bemImportString, opts, filename) {
         };
     });
 
-    if (!bemFiles.length) return [];
+    if (!bemFiles.length) return null;
 
     /**
      * extToFiles:
@@ -153,3 +184,5 @@ function bemImportToFiles(bemImportString, opts, filename) {
             };
         });
 }
+
+module.exports.bemImportToFiles = bemImportToFiles;
