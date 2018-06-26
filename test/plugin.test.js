@@ -26,4 +26,24 @@ describe('Pugin', () => {
         `.replace(/\n/g, ''));
         /* eslint-enable max-len */
     });
+
+    it('es: Defaults', () => {
+        const fs = {
+            'index.js' : `import 'b:button'`,
+            'common.blocks/button' : {
+                'button.js' : `({ block: 'button' })`,
+                'button.css' : `.button { }`
+            }
+        };
+        const options = {
+            // Required option
+            levels: ['common.blocks']
+        };
+
+        const source = babel('index.js', { options, fs });
+
+        expect(source).to.eql(stripIndents`
+            import "./common.blocks/button/button.js";
+        `);
+    });
 });

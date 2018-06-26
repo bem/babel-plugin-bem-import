@@ -43,5 +43,11 @@ function generateI18n(langs, files) {
 module.exports = {
     generate : function(langs) {
         return generateI18n.bind(null, langs);
+    },
+    esGenerate : function(langs) {
+        return (files, name) => {
+            const i18n = generateI18n(langs, files);
+            return `const ${name} = ${i18n}`;
+        };
     }
 };

@@ -5,7 +5,7 @@ const { babel } = require('../helpers');
 
 describe('Options', () => {
     describe('techs && techMap', () => {
-        it('only ts', async () => {
+        it('only ts', () => {
             const fs = {
                 'index.ts' : `require('b:button')`,
                 'common.blocks/button' : {
@@ -26,7 +26,6 @@ describe('Options', () => {
                 }
             };
 
-
             const source = babel('index.ts', { options, fs });
             /* eslint-disable max-len */
             expect(source).to.eql(stripIndents`[(
@@ -34,6 +33,37 @@ describe('Options', () => {
                 (require('./desktop.blocks/button/button.ts').default || require('./desktop.blocks/button/button.ts')).applyDecls()
             )][0];`.replace(/\n/g, ''));
             /* eslint-enable max-len */
+        });
+
+        it('es: only ts', () => {
+            const fs = {
+                'index.ts' : `import Button from 'b:button'`,
+                'common.blocks/button' : {
+                    'button.ts' : `({ block: 'button' })`
+                },
+                'desktop.blocks/button' : {
+                    'button.ts' : `({ block: 'button', content: 'desktop' })`
+                }
+            };
+            const options = {
+                levels : ['common.blocks', 'desktop.blocks'],
+                // this is default
+                techs : ['js'],
+                techMap : {
+                    // to work with bem-react-core
+                    // we need to map js to ts
+                    js : ['ts']
+                }
+            };
+
+            const source = babel('index.ts', { options, fs });
+
+            expect(source).to.eql(stripIndents`
+                import "./common.blocks/button/button.ts";
+                import _button from "./desktop.blocks/button/button.ts";
+
+                const Button = _button.applyDecls();
+            `);
         });
 
         // TODO: https://github.com/bem/webpack-bem-loader/issues/67
@@ -109,6 +139,33 @@ describe('Options', () => {
                 , require('./common.blocks/button/button.css')
             ][0];`.replace(/\n/g, ''));
             /* eslint-enable max-len */
+        });
+
+        it('es: js & css', () => {
+            const fs = {
+                'index.js' : `import Button from 'b:button';`,
+                'common.blocks/button' : {
+                    'button.js' : `({ block: 'button' })`,
+                    'button.css' : `.button { }`
+                }
+            };
+
+            const options = {
+                levels : [
+                    'common.blocks'
+                ],
+                techs : ['js', 'css']
+            };
+
+            const source = babel('index.js', { options, fs });
+
+            expect(source).to.eql(stripIndents`
+                import _button from "./common.blocks/button/button.js";
+
+                const Button = _button.applyDecls();
+
+                import "./common.blocks/button/button.css";
+            `);
         });
     });
 });

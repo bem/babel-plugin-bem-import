@@ -9,3 +9,8 @@ module.exports = function generateStr(files) {
         .join(',\n');
 };
 
+module.exports.es = function(files) {
+    return files
+        .map(file => `import "${file.path}";`)
+        .join('\n');
+};
