@@ -9,6 +9,7 @@ const bemImport = require('@bem/import-notation');
 const bemConfig = require('bem-config')();
 const requiredPath = require('required-path');
 const template = require('babel-template');
+const debug = require('debug')('bem-import');
 const logSymbols = require('log-symbols');
 
 const generators = require('./generators');
@@ -167,7 +168,7 @@ function bemImportToFiles(bemImportString, opts, filename) {
     Object.keys(existsEntities).forEach(fileId => {
         // check if entity has no tech to resolve
         existsEntities[fileId] || errEntities[fileId].forEach(file => {
-            console.warn(`${logSymbols.warning} BEM module not found: ${file.path}`);
+            debug(`${logSymbols.warning} BEM module not found: ${file.path}`);
         });
     });
 
