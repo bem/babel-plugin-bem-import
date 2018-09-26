@@ -8,7 +8,7 @@ describe('Pugin', () => {
         const fs = {
             'index.js' : `require('b:button')`,
             'common.blocks/button' : {
-                'button.js' : `({ block: 'button' })`,
+                'button.js' : `<Button />`,
                 'button.css' : `.button { }`
             }
         };
