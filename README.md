@@ -15,6 +15,11 @@ import BlockElem from 'b:block e:elem m:modName=modVal1|modVal2';
 
 > npm i -D babel-plugin-bem-import
 
+## Babel version
+
+For babel-7 use `babel-plugin-bem-import@2`
+For babel-6 use `babel-plugin-bem-import@1`
+
 ## Usage
 
 `.babelrc`
