@@ -1,4 +1,4 @@
-const babel = require('babel-core');
+const babel = require('@babel/core');
 const mock = require('mock-fs');
 
 const plugin = require('..');
@@ -26,6 +26,18 @@ function readFile(fs, path) {
 };
 
 function transformSourceWithOptions(path, { options, fs }) {
+    require('@babel/parser');
+    require('@babel/generator');
+    require('@babel/template');
+    require('@babel/traverse');
+    require('convert-source-map');
+    require('esutils');
+    require('lodash/clone.js');
+    require('lodash/includes.js');
+    require('lodash/isInteger.js');
+    require('semver');
+    require('trim-right');
+    
     mock(fs);
 
     try {
@@ -33,6 +45,7 @@ function transformSourceWithOptions(path, { options, fs }) {
         const result = babel.transform(source, {
             filename: path,
             babelrc: false,
+            sourceType: 'module',
             plugins: [[plugin, options]]
         }).code;
 
